@@ -1,156 +1,311 @@
-# Secure Byte Cryptographic Integrity Utility — User & Deployment Guide
+# Secure Byte Cryptographic Integrity Utility — Comprehensive User Manual
 
-> **Official Release Documentation**  
-> Maintained by [@spdigitalme](https://github.com/spdigitalme) | Repository: [spdigitalme/SecureByteHashing](https://github.com/spdigitalme/SecureByteHashing)
+<div align="center">
 
----
+<img src="docs/images/logo.png" alt="Secure Byte Logo" width="110" />
 
-## 1. Overview & Architecture
+### Official User Manual & Operational Reference Guide
+**Version 1.1.0 • 64-Bit Windows Edition (Windows 10 / 11)**  
+Maintained by [@spdigitalme](https://github.com/spdigitalme) • Repository: [spdigitalme/SecureByteHashing](https://github.com/spdigitalme/SecureByteHashing)
 
-**Secure Byte Cryptographic Integrity Utility** is an enterprise-grade, 100% offline file integrity verification, cryptographic hashing, and directory comparison suite engineered for Windows 10 & 11 (x64).
-
-### Key Technical Capabilities:
-- **15 Cryptographic Engines**: SHA-256, SHA-512, SHA-384, SHA-224, SHA3 (224/256/384/512), BLAKE2B, BLAKE2S, BLAKE3 (AVX-512 SIMD accelerated), MD5, SHA-1, CRC32, CRC64.
-- **Windows Explorer Cascading Context Menu**: Direct right-click integration on any file or group of files.
-- **Real-Time Multi-File Calculation Popup**: Compute digests across multiple files simultaneously with instant clipboard copy and dynamic algorithm switching.
-- **WiX Toolset Native Windows Installer (.msi)**: Standard `C:\Program Files\SecureByteHash` setup with Desktop & Start Menu shortcuts, system PATH registration, and clean uninstall.
-- **Authenticode Digital Code Signing**: Fully signed binaries and installers with RFC 3161 timestamps.
-- **100% Air-Gapped Privacy**: Zero internet network requests, zero telemetry, local CPU computation only.
-- **Encrypted Local Storage**: SQLite3 database encrypted with AES-256-GCM.
+</div>
 
 ---
 
-## 2. Release Package Assets
+## 📑 Table of Contents
 
-All installer files are located in the **`Release v1.1.0`** directory:
-
-| File | Description | Purpose |
-| :--- | :--- | :--- |
-| **`SecureByteHash-1.1.0-x64.msi`** | Standalone Windows Installer | Native setup wizard and uninstaller |
-| **`SecureBytePublisher.cer`** | Public Authenticode Certificate | Establishes Windows OS trust for publisher |
-| **`install_trust.bat`** | One-Click Trust Setup Tool | Installs `.cer` into Windows Root and TrustedPublisher stores |
-| **`SHA256_checksum.txt`** | Cryptographic Hash Manifest | Verifies download integrity before running setup |
+1. [Security Architecture & Operational Philosophy](#1-security-architecture--operational-philosophy)
+2. [Release Package Artifacts](#2-release-package-artifacts)
+3. [Installation & Windows SmartScreen Setup](#3-installation--windows-smartscreen-setup)
+   - [3.1 SHA-256 Download Integrity Verification](#31-sha-256-download-integrity-verification)
+   - [3.2 Installing the Publisher Trust Certificate](#32-installing-the-publisher-trust-certificate)
+   - [3.3 Running the WiX Setup Wizard](#33-running-the-wix-setup-wizard)
+   - [3.4 Enterprise Unattended Silent Deployment](#34-enterprise-unattended-silent-deployment)
+4. [Windows Explorer Cascading Context Menu](#4-windows-explorer-cascading-context-menu)
+5. [Multi-File Batch Checksum Processing Window](#5-multi-file-batch-checksum-processing-window)
+6. [Primary File Integrity & Forensic Analysis Suite](#6-primary-file-integrity--forensic-analysis-suite)
+7. [Directory Tree Auditing & Differential Comparison](#7-directory-tree-auditing--differential-comparison)
+8. [Preferences, Cryptographic Salting & Threat Intelligence](#8-preferences-cryptographic-salting--threat-intelligence)
+9. [System Telemetry & Developer Profile](#9-system-telemetry--developer-profile)
+10. [Troubleshooting & Frequently Asked Questions](#10-troubleshooting--frequently-asked-questions)
 
 ---
 
-## 3. Step-by-Step Installation & Verification
+## 1. Security Architecture & Operational Philosophy
 
-### Step 3.1: Verify Download Integrity (SHA-256)
-Before opening the installer, verify that your download has not been corrupted or tampered with:
+**Secure Byte Cryptographic Integrity Utility** provides deterministic cryptographic verification of digital assets in strictly regulated environments.
+
+```mermaid
+flowchart LR
+    subgraph Input["Asset Acquisition"]
+        File["Single Files"]
+        Batch["Multi-File Selection"]
+        Dir["Directory Trees"]
+    end
+
+    subgraph Engine["Secure Byte Offline Core"]
+        Registry["Algorithm Registry (15 Engines)"]
+        SIMD["SIMD Acceleration (AVX-512 / AVX2 / SHA-NI)"]
+        Forensics["Entropy & Overlay Analyzer"]
+        ThreatDB["Offline Malware Blocklist"]
+    end
+
+    subgraph Security["High-Assurance Boundaries"]
+        AirGap["100% Offline (No Sockets / No Telemetry)"]
+        EncryptedDB["AES-256-GCM Configuration DB"]
+        SignedBinary["Authenticode Digital Signing"]
+    end
+
+    Input --> Registry
+    Registry --> SIMD
+    Registry --> Forensics
+    Registry --> ThreatDB
+    Engine --> Security
+```
+
+### High-Assurance Security Guarantees:
+- **100% Offline Air-Gapped Privacy**: The software does not establish outbound or inbound network sockets, execute DNS queries, or communicate with external servers. All cryptographic algorithms run locally on the workstation CPU.
+- **Hardware-Accelerated Cryptography**: Automatic vectorization tier detection leveraging Intel/AMD AVX-512, AVX2, and OpenSSL hardware acceleration.
+- **AES-256-GCM Encrypted Configuration Database**: Preferences, custom presets, and malware definitions are stored in an authenticated local SQLite3 database protected with PBKDF2-derived master keys.
+- **Authenticode Verified**: All executable binaries and Windows Installer packages are digitally signed with a SHA-256 Authenticode certificate and RFC 3161 timestamps.
+
+---
+
+## 2. Release Package Artifacts
+
+All distribution assets are located in the [**`Release v1.1.0/`**](Release%20v1.1.0/) directory:
+
+| Artifact | File Type | Size | Purpose |
+| :--- | :--- | :--- | :--- |
+| **`SecureByteHash-1.1.0-x64.msi`** | Windows Installer (.msi) | `45.4 MB` | Native 64-bit WiX installer configuring desktop shortcuts, PATH registration, and context menu handlers. |
+| **`SecureBytePublisher.cer`** | X.509 Certificate (.cer) | `1.0 KB` | Public code-signing certificate for publisher identity validation. |
+| **`install_trust.bat`** | Batch Setup Script | `2.2 KB` | Automated Administrator tool to import `.cer` into Windows Root and TrustedPublisher stores. |
+| **`SHA256_checksum.txt`** | Checksum Manifest (.txt) | `64 B` | Cryptographic verification hash for validating package authenticity before installation. |
+
+---
+
+## 3. Installation & Windows SmartScreen Setup
+
+### 3.1 SHA-256 Download Integrity Verification
+Before executing the installer, verify that the package has not suffered transmission corruption:
 
 ```cmd
 certutil -hashfile "Release v1.1.0\SecureByteHash-1.1.0-x64.msi" SHA256
 ```
 
-Compare the 64-character hash output with the hash in `Release v1.1.0\SHA256_checksum.txt`. If they match, your installer is authentic.
+Confirm that the output matches the official digest:
+```
+87e52b7cb2070b3d2deb5bce7d2bf86e09595b7a8740cfdf00c6af3db78dcf92
+```
 
 ---
 
-### Step 3.2: Install Publisher Trust Certificate (Removes SmartScreen Warnings)
+### 3.2 Installing the Publisher Trust Certificate
 
-When you download an installer from the web, Windows automatically applies the **Mark-of-the-Web (`ZoneId=3`)**. Without pre-installed certificate trust, Microsoft Defender SmartScreen displays a blue block warning (*"Windows protected your PC"*).
+> [!IMPORTANT]
+> When executable files are downloaded from the internet, Windows applies the **Mark-of-the-Web (`ZoneId=3`)**. Without pre-installed certificate trust, Microsoft Defender SmartScreen displays a blue block prompt (*"Windows protected your PC"*). Running `install_trust.bat` imports the public certificate into the Windows Certificate Store, which tells Windows to recognize **`Publisher: Secure Byte Security Systems`** as trusted.
 
-To eliminate this warning and establish trusted publisher status:
-1. Download `SecureBytePublisher.cer` and `install_trust.bat` from the release page into the same folder.
+1. Navigate to the **`Release v1.1.0`** folder.
 2. Right-click **`install_trust.bat`** and select **Run as administrator**.
-3. The script silently adds the certificate to your local machine stores:
-   - `LocalMachine\Root` (Trusted Root Certification Authorities)
-   - `LocalMachine\TrustedPublisher` (Trusted Publishers)
+3. The script verifies elevation and adds the certificate to two system stores:
+   - **`LocalMachine\Root`**: Trusted Root Certification Authorities
+   - **`LocalMachine\TrustedPublisher`**: Trusted Publishers
+4. A confirmation prompt will report `STATUS: [VERIFIED] Publisher certificate is active and trusted!`.
 
-Once trusted, Windows displays the trusted security dialog showing **`Publisher: Secure Byte Security Systems`** with a direct **Run** button!
+#### What You Will See After Installing Certificate Trust:
+When executing the installer, Windows displays a clean, trusted security warning with a direct **`Run`** button:
 
-#### Alternative Manual Command Prompt (Administrator):
+<div align="center">
+  <img src="docs/images/windows_security_trusted_publisher.png" alt="Trusted Publisher Security Warning" width="60%" />
+  <p><em>Verified Publisher Security Dialog with Direct "Run" Action</em></p>
+</div>
+
+#### Manual Command Prompt Installation (Alternative):
 ```cmd
-certutil -addstore -f "Root" SecureBytePublisher.cer
-certutil -addstore -f "TrustedPublisher" SecureBytePublisher.cer
+certutil -addstore -f "Root" "Release v1.1.0\SecureBytePublisher.cer"
+certutil -addstore -f "TrustedPublisher" "Release v1.1.0\SecureBytePublisher.cer"
 ```
 
 ---
 
-### Step 3.3: Running the WiX Setup Wizard
+### 3.3 Running the WiX Setup Wizard
 
-![WiX Setup Wizard](docs/images/wix_installer_wizard.png)
+Double-click **`SecureByteHash-1.1.0-x64.msi`** to launch the setup wizard:
 
-1. Double-click `SecureByteHash-1.1.0-x64.msi` to launch the Material Design 3 setup wizard.
-2. Review and accept the End-User License Agreement.
-3. Choose your destination directory (default: `C:\Program Files\SecureByteHash`).
-4. Click **Install**. The wizard automatically:
-   - Deploys compiled standalone binaries.
-   - Registers system PATH environment variables.
-   - Creates Desktop and Start Menu program shortcuts.
-   - Registers Windows Explorer right-click cascading menus.
-5. Click **Finish** to launch the utility.
+<div align="center">
+  <img src="docs/images/wix_installer_wizard.png" alt="WiX Installer Wizard" width="70%" />
+  <p><em>Material Design 3 High-DPI Supersampled Setup Wizard</em></p>
+</div>
 
-#### Silent / Unattended Deployment (Enterprise / IT Admins):
+1. **Welcome Screen**: Displays application branding and software version. Click **Next**.
+2. **License Agreement**: Review and accept the MIT License.
+3. **Destination Directory**: Standard default location is `C:\Program Files\SecureByteHash`. Click **Change...** to specify a custom installation directory if required.
+4. **Installation Execution**: Click **Install**. The wizard deploys program binaries, configures registry associations, registers system PATH environment variables, and creates shortcuts.
+5. **Completion**: Click **Finish** to launch the utility.
+
+---
+
+### 3.4 Enterprise Unattended Silent Deployment
+
+For IT systems administrators deploying across enterprise networks via Microsoft Intune, SCCM, or Group Policy:
+
 ```cmd
-# Silent Install
-msiexec /i SecureByteHash-1.1.0-x64.msi /qn
+# Silent Background Installation
+msiexec /i "Release v1.1.0\SecureByteHash-1.1.0-x64.msi" /qn
 
-# Silent Install with custom directory
-msiexec /i SecureByteHash-1.1.0-x64.msi /qn TARGETDIR="D:\Tools\SecureByteHash"
+# Silent Installation to Custom Directory
+msiexec /i "Release v1.1.0\SecureByteHash-1.1.0-x64.msi" /qn TARGETDIR="D:\SecurityTools\SecureByteHash"
 
-# Silent Uninstall
-msiexec /x SecureByteHash-1.1.0-x64.msi /qn
+# Silent Clean Uninstallation
+msiexec /x "Release v1.1.0\SecureByteHash-1.1.0-x64.msi" /qn
 ```
 
 ---
 
-## 4. How to Use the Utility
+## 4. Windows Explorer Cascading Context Menu
 
-### 4.1 Windows Explorer Right-Click Menu & Multi-File Calculation
+Secure Byte integrates directly into the Windows Explorer desktop shell:
 
-You can calculate checksums directly from Windows Explorer:
-1. Select one or more files in Windows Explorer.
-2. Right-click -> **Secure Byte Hashing** -> Choose algorithm (e.g. `SHA-256`, `SHA3-512`, `BLAKE3`).
-3. The real-time multi-file processing popup opens immediately:
+1. In Windows Explorer, select one file or highlight multiple files.
+2. Right-click the selection -> click **Secure Byte Hashing**.
+3. Choose your desired algorithm:
+   - **SHA-256 Checksum**
+   - **SHA-512 Checksum**
+   - **BLAKE3 Checksum**
+   - **MD5 Checksum**
+   - **Open Secure Byte Utility** (Opens main window)
 
-![Multi-File Checksum Popup](docs/images/popup_checksum_calculator.png)
+> [!TIP]
+> You can toggle the cascading shell menu on or off and choose which algorithms appear in it via **Preferences -> Display & Workflow Automation -> Enable Command-Line Interface (CLI)**.
 
-- **Real-Time Progress**: Shows status, file name, file size, computed digest, and execution time per file.
-- **Algorithm Switcher**: Switch algorithms instantly on the fly using the top dropdown.
+---
+
+## 5. Multi-File Batch Checksum Processing Window
+
+When selecting files via the right-click menu or the **Batch Checksum** tab, the dedicated multi-file processing window opens:
+
+<div align="center">
+  <img src="docs/images/hash_popup_verified_window.png" alt="Multi-File Checksum Verification Window" width="94%" />
+  <p><em>Real-Time Parallel Batch Hashing Window (SHA3-512 with per-file status badges, sizes, execution times, and instant row copy)</em></p>
+</div>
+
+### Features & Capabilities:
+- **Concurrent Stream Hashing**: Files are processed using optimized worker thread pools without blocking the user interface.
+- **Real-Time Row Metrics**: Displays status (`Done`, `Pending`, `Computing`), file name, size, computed digest, and execution time down to milliseconds.
+- **Dynamic Algorithm Switching**: Use the top-right **Algorithm** dropdown to recompute all files with a different algorithm on the fly.
 - **One-Click Clipboard Actions**:
-  - Click `Copy` on any row to copy that file's digest.
-  - Click `Copy All` or `Copy Selected` at the bottom for bulk exports.
-  - Click `Export...` to save results as CSV or TXT manifests.
+  - Click **`Copy`** on any row to copy that single digest to the clipboard.
+  - Click **`Copy Selected`** or **`Copy All`** at the bottom for multi-line clipboard exports.
+  - Click **`Export...`** to save complete manifests as `.csv` or `.txt` checksum files.
 
 ---
 
-### 4.2 Main Application Screen & Security Diagnostics
+## 6. Primary File Integrity & Forensic Analysis Suite
 
-Launch the main utility from your Desktop or Start Menu:
+Open the main application from your Desktop or Start Menu to access the **File Checksum** tab:
 
-![About Tab & Security Dashboard](docs/images/about_tab_preview.png)
+<div align="center">
+  <img src="docs/images/main_window_file_tab.png" alt="File Checksum Verification Dashboard" width="94%" />
+  <p><em>Primary File Checksum Inspection Dashboard with Drag & Drop Zone, Hardware Acceleration Badge, and Multi-Digest Outputs</em></p>
+</div>
 
-- **File Integrity Tab**: Compare computed hashes against expected digests, identify file corruption, and inspect Shannon entropy.
-- **Folder Tree Tab**: Recursively scan and diff directories with file-by-file status tracking (Match, Mismatch, Missing, Extra).
-- **Text Tab**: Hash plaintext strings with custom encodings (UTF-8, ASCII, UTF-16).
-- **Benchmark Suite**: Measure your CPU's hardware hashing throughput across AVX2, AVX-512, and OpenSSL hardware acceleration.
-- **About Tab**:
-  - Live system diagnostics and configuration metrics.
-  - Developer Profile link to [@spdigitalme](https://github.com/spdigitalme).
-  - Report Issue / Feedback link.
-
----
-
-## 5. Troubleshooting & FAQ
-
-#### Q: Why does Windows SmartScreen show "Unrecognized App"?
-**A**: Because open-source self-contained releases do not use a commercial $400/yr certificate authority. Simply run `install_trust.bat` once as Administrator to trust the publisher certificate.
-
-#### Q: Does Secure Byte send any data over the internet?
-**A**: Absolutely not. The application is 100% offline and air-gapped. It does not open network sockets or send telemetry. All cryptographic processing occurs locally on your CPU.
-
-#### Q: How do I clean uninstall?
-**A**: Go to **Windows Settings -> Installed Apps -> Secure Byte Cryptographic Integrity Utility -> Uninstall**, or run:
-```cmd
-msiexec /x SecureByteHash-1.1.0-x64.msi /qn
-```
-The uninstaller cleanly deletes all program files, environment variables, shortcuts, and context menu registry entries.
+### Step-by-Step Operations:
+1. **Target Selection**: Drag & drop any target file directly into the inspection drop zone, or click **`Browse File`**.
+2. **Multi-Engine Execution**: Click **`Compute Hashes`** to compute digests across all active algorithm families in parallel.
+3. **Digest Verification**: Paste an expected checksum into the verification box. The application instantly reports:
+   - **`MATCH`** (Green): File matches expected cryptographic integrity.
+   - **`MISMATCH`** (Red): File has been modified, corrupted, or tampered with.
+4. **Forensic Tools**:
+   - **`Forensic Overlay...`**: Detects hidden data appended past the end of valid executable (PE) structures.
+   - **`Shannon Entropy Analyzer`**: Calculates entropy score (0.00 - 8.00 bits/byte) to identify encrypted or packed payloads.
+   - **`Forensic Certificate...`**: Generates a verifiable digital PDF/Text certificate of integrity.
 
 ---
 
-## 6. Official Links & Community
+## 7. Directory Tree Auditing & Differential Comparison
 
-- **Developer Profile**: [https://github.com/spdigitalme](https://github.com/spdigitalme)
-- **Repository**: [https://github.com/spdigitalme/SecureByteHashing](https://github.com/spdigitalme/SecureByteHashing)
-- **Issue Tracker**: [https://github.com/spdigitalme/SecureByteHashing/issues](https://github.com/spdigitalme/SecureByteHashing/issues)
+Open the **Folder Diff** tab to audit entire directory trees:
+
+<div align="center">
+  <img src="docs/images/main_window_folder_tab.png" alt="Directory Tree Auditing" width="94%" />
+  <p><em>Dual-Directory Inspection Matrix with Status Badges (Matches, Mismatches, Missing, Extra) and CSV Export</em></p>
+</div>
+
+### Operational Workflow:
+1. Specify **Folder 1 (Source)** and optional **Folder 2 (Diff Target)**.
+2. Select whether to include subfolders or hidden files.
+3. Click **`Start Directory Scan / Diff`**.
+4. The scan matrix categorizes all discovered files into color-coded status badges:
+   - **`Matches`** (Green): Files identical in both directories.
+   - **`Mismatches`** (Red): Files present in both directories with altered content.
+   - **`Missing in B`** (Orange): Files present in Source but absent from Target.
+   - **`Extra in B`** (Blue): Files present in Target but absent from Source.
+5. Use the filter chips (**`Mismatches Only`**, **`Matches Only`**, **`All`**) to isolate discrepancies.
+6. Click **`Export CSV Report`** to generate an audit-ready compliance manifest.
+
+---
+
+## 8. Preferences, Cryptographic Salting & Threat Intelligence
+
+Open the **Preferences** tab to configure application policies:
+
+<div align="center">
+  <img src="docs/images/main_window_options_tab.png" alt="Application Preferences" width="94%" />
+  <p><em>Preferences Tab: Workflow Automation, Algorithm Selection, Threat Intel DB, and Performance Tuning</em></p>
+</div>
+
+### Module Breakdown:
+- **General**: Configure uppercase/lowercase hexadecimal formatting, auto-copy to clipboard, and always-on-top window behavior.
+- **Algorithms**: Enable or disable default hashing algorithms.
+- **Salting & HMAC**: Configure secret salt keys or RFC 2104 HMAC authentication keys.
+- **Offline Threat Intel**: Enable the offline malware blocklist (automatically flags known ransomware, wipers, and malicious samples).
+- **Performance**: Adjust streaming I/O chunk sizes (1 MB to 32 MB) and CPU worker thread pools.
+
+---
+
+## 9. System Telemetry & Developer Profile
+
+The **About** tab provides complete system specifications, hardware vector acceleration status, and developer contact information:
+
+<div align="center">
+  <img src="docs/images/about_tab_preview.png" alt="System Diagnostics and Developer Profile" width="94%" />
+  <p><em>About Tab: Live System Diagnostics Metrics, Air-Gapped Status, and Developer Profile (@spdigitalme)</em></p>
+</div>
+
+- **Hardware Acceleration**: Displays active CPU vector tiers (AVX-512, AVX2, SHA-NI).
+- **Bundled Typography**: Validates that Roboto and JetBrains Mono typography are loaded from internal storage with zero OS dependencies.
+- **Copy Diagnostics Report**: Exports a complete technical specification of active settings and environment metrics to the clipboard.
+- **Developer Profile**: Links directly to [@spdigitalme](https://github.com/spdigitalme).
+- **Report Issue / Feedback**: Links to the official issue tracker on GitHub.
+
+---
+
+## 10. Troubleshooting & Frequently Asked Questions
+
+#### Q: Windows SmartScreen shows "Windows protected your PC" when running the installer.
+> [!NOTE]
+> Open-source software self-contained distributions do not use commercial third-party Certificate Authorities. Simply right-click **`Release v1.1.0\install_trust.bat`** and choose **Run as administrator**. Once imported, Windows will trust the installer.
+
+#### Q: How do I cleanly uninstall the application?
+> [!TIP]
+> Go to **Windows Settings -> Apps -> Installed Apps -> Secure Byte Cryptographic Integrity Utility -> Uninstall**, or run:
+> ```cmd
+> msiexec /x "Release v1.1.0\SecureByteHash-1.1.0-x64.msi" /qn
+> ```
+> This completely deletes all binaries, context menu entries, shortcuts, and environment variables.
+
+#### Q: Are any hash calculations sent over the network?
+> [!IMPORTANT]
+> No. The utility is 100% air-gapped and offline. No network sockets are created, and all hashing runs strictly on your local CPU.
+
+---
+
+## 👨‍💻 Developer & Maintenance
+
+- **Developer**: [@spdigitalme](https://github.com/spdigitalme)
+- **Repository**: [spdigitalme/SecureByteHashing](https://github.com/spdigitalme/SecureByteHashing)
+- **Issues & Bug Reports**: [GitHub Issues](https://github.com/spdigitalme/SecureByteHashing/issues)
+
+<div align="center">
+<sub>Secure Byte Cryptographic Integrity Utility • Enterprise 100% Offline Air-Gapped Verification</sub>
+</div>
